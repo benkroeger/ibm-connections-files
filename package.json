@@ -29,7 +29,7 @@
     "oniyi-http-plugin-format-url-template": "1.0.1",
     "oniyi-logger": "1.0.0",
     "oniyi-utils": "1.1.1",
-    "oniyi-utils-xml": "0.1.0"
+    "oniyi-utils-xml": "1.0.0"
   },
   "devDependencies": {
     "ava": "0.18.1",
