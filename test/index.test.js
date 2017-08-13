@@ -35,7 +35,7 @@ test.beforeEach((t) => {
   const thirdLvlProperties = ['name', 'userId', 'orgId', 'orgName', 'email', 'userState'];
 
   const filesProperties = [...baseProperties, 'versionLabel', 'totalMediaSize', 'libraryId', 'libraryType',
-    'versionUuid', 'objectTypeName', 'propagation', 'malwareScanState', 'restrictedVisibility', 'encrypt', 'addedBy'];
+    'versionUuid', 'objectTypeName', 'propagation', 'malwareScanState', 'restrictedVisibility', 'encrypt'];
   const communityFilesProperties = [...filesProperties, 'added', 'contentUpdated', 'sharePermission'];
   const foldersListProperties = [...baseProperties, 'uuid', 'visibility', 'type',
     'isSyncable', 'allowSetFavorite', 'allowFollowing'];
@@ -51,21 +51,21 @@ test.beforeEach((t) => {
     foldersListProperties,
   });
 });
-//
-// test.before(() => {
-//   if (!nockCallsExist) {
-//     recordHttpRequests();
-//     return;
-//   }
-//   mockHttpRequests();
-// });
-//
-// test.after(() => {
-//   if (!nockCallsExist) {
-//     writeNockCallsToFile();
-//   }
-//   cleanAll();
-// });
+
+test.before(() => {
+  if (!nockCallsExist) {
+    recordHttpRequests();
+    return;
+  }
+  mockHttpRequests();
+});
+
+test.after(() => {
+  if (!nockCallsExist) {
+    writeNockCallsToFile();
+  }
+  cleanAll();
+});
 
 /* Successful scenarios validations */
 
