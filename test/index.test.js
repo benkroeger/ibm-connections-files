@@ -1,33 +1,38 @@
 'use strict';
 
 // node core modules
-const fs = require('fs');
-const path = require('path');
 
 // 3rd party modules
-const test = require('ava');
-const _ = require('lodash');
+import test from 'ava';
+import _ from 'lodash';
 
 // internal modules
-const fileService = require('../lib');
-const { mockHttpRequests, cleanAll, writeNockCallsToFile, recordHttpRequests } = require('./helpers/http-mocking-utils');
+import fileService from '../lib';
+import { mock, record, persist } from './fixtures/http-mocking';
 
 // configure dotenv
 require('dotenv').config();
 
-const { USER_CREDENTIALS: userCredentials } = process.env;
-const nockCallsExist = fs.existsSync(path.join(__dirname, 'helpers/nock-calls.js'));
+const { unmocked, username, password } = process.env;
+
+test.before(() => (unmocked ? record() : mock()));
+test.after(() => unmocked && persist());
 
 test.beforeEach((t) => {
-  const auth = `Basic ${new Buffer(userCredentials).toString('base64')}`;
-  const defaults = {
-    headers: {
-      Authorization: auth,
+  const serviceOptions = {
+    defaults: {
+      authType: 'basic',
     },
   };
-  const serviceOptions = {
-    defaults,
-  };
+  if (unmocked) {
+    Object.assign(serviceOptions.defaults, {
+      auth: {
+        user: username,
+        pass: password,
+      },
+    });
+  }
+
   const baseProperties = ['id', 'title', 'summary', 'created', 'published', 'updated',
     'modified', 'label', 'isExternal', 'orgId', 'links', 'author', 'modifier', 'ranks', 'policy'];
 
@@ -50,21 +55,6 @@ test.beforeEach((t) => {
     communityFilesProperties,
     foldersListProperties,
   });
-});
-
-test.before(() => {
-  if (!nockCallsExist) {
-    recordHttpRequests();
-    return;
-  }
-  mockHttpRequests();
-});
-
-test.after(() => {
-  if (!nockCallsExist) {
-    writeNockCallsToFile();
-  }
-  cleanAll();
 });
 
 /* Successful scenarios validations */

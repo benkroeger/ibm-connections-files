@@ -1,8 +1,0 @@
-{
-  "item":             "http://www.ibm.com/xmlns/prod/sn/item",
-  "documents":        "http://www.ibm.com/xmlns/prod/sn/documents",
-  "collections":      "http://www.ibm.com/xmlns/prod/sn/collections",
-  "user":             "http://www.ibm.com/xmlns/prod/sn/user",
-  "group":            "http://www.ibm.com/xmlns/prod/sn/group"
-}
-
