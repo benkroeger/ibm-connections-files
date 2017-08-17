@@ -69,6 +69,8 @@ test.cb('validate retrieving personal files feed', (t) => {
   const { service, filesProperties, secondLvlProperties, thirdLvlProperties, validateObjects } = t.context;
 
   service.myFiles({}, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 5, 'there should be exactly 5 elements in {response.files}');
     files.forEach((file, i) => {
@@ -96,6 +98,8 @@ test.cb('validate retrieving files from community feed', (t) => {
   };
 
   service.communityFiles(query, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
     files.forEach((file, i) => {
@@ -120,6 +124,8 @@ test.cb('validate retrieving publicFiles feed', (t) => {
   const { service, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
 
   service.publicFiles({}, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 2, 'there should be exactly 2 elements in {response.files}');
     files.forEach((file, i) => {
@@ -146,6 +152,8 @@ test.cb('validate retrieving all files from folder feed', (t) => {
   };
 
   service.filesFromFolder(query, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
     files.forEach((file, i) => {
