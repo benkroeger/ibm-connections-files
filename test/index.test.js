@@ -45,6 +45,11 @@ test.beforeEach((t) => {
   const foldersListProperties = [...baseProperties, 'uuid', 'visibility', 'type',
     'isSyncable', 'allowSetFavorite', 'allowFollowing'];
 
+  const validateObjects = (file, extraProps) => {
+    ['created', 'published', 'updated', 'modified', ...extraProps].forEach(elem => t.true(_.isFinite(file[elem]),
+      `[${elem}] should be of type Number, instead we got: [${typeof file[elem]}]`));
+  };
+
   const service = fileService('https://apps.na.collabserv.com/files', serviceOptions);
   _.assign(t.context, {
     service,
@@ -54,21 +59,25 @@ test.beforeEach((t) => {
     filesProperties,
     communityFilesProperties,
     foldersListProperties,
+    validateObjects,
   });
 });
 
 /* Successful scenarios validations */
 
 test.cb('validate retrieving personal files feed', (t) => {
-  const { service, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
+  const { service, filesProperties, secondLvlProperties, thirdLvlProperties, validateObjects } = t.context;
 
-  service.myFiles({}, {}, (err, response) => {
-    const { files } = response;
+  service.myFiles({}, {}, (err, files) => {
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 5, 'there should be exactly 5 elements in {response.files}');
     files.forEach((file, i) => {
       filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+
+      validateObjects(file, ['versionLabel', 'totalMediaSize']);
+
+      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -80,19 +89,22 @@ test.cb('validate retrieving personal files feed', (t) => {
 });
 
 test.cb('validate retrieving files from community feed', (t) => {
-  const { service, communityFilesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
+  const { service, communityFilesProperties, secondLvlProperties, thirdLvlProperties, validateObjects } = t.context;
   const query = {
     authType: 'basic',
     communityId: '5dd83cd6-d3a5-4fb3-89cd-1e2c04e52250',
   };
 
-  service.communityFiles(query, {}, (err, response) => {
-    const { files } = response;
+  service.communityFiles(query, {}, (err, files) => {
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
     files.forEach((file, i) => {
-      communityFilesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      [...secondLvlProperties, 'addedBy'].forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+      communityFilesProperties.forEach(prop => t.true(prop in file,
+        `[${prop}] should be a member of response.files[${i}]`));
+      validateObjects(file, ['versionLabel', 'totalMediaSize']);
+
+      [...secondLvlProperties, 'addedBy'].forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier', 'addedBy'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -107,13 +119,14 @@ test.cb('validate retrieving files from community feed', (t) => {
 test.cb('validate retrieving publicFiles feed', (t) => {
   const { service, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
 
-  service.publicFiles({}, {}, (err, response) => {
-    const { files } = response;
+  service.publicFiles({}, {}, (err, files) => {
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 2, 'there should be exactly 2 elements in {response.files}');
     files.forEach((file, i) => {
-      filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      [...secondLvlProperties].forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+      filesProperties.forEach(prop => t.true(prop in file,
+        `[${prop}] should be a member of response.files[${i}]`));
+      [...secondLvlProperties].forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -132,13 +145,14 @@ test.cb('validate retrieving all files from folder feed', (t) => {
     collectionId: '2e53fe56-84f6-485f-8b7a-0429f852f015',
   };
 
-  service.filesFromFolder(query, {}, (err, response) => {
-    const { files } = response;
+  service.filesFromFolder(query, {}, (err, files) => {
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
     files.forEach((file, i) => {
-      filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+      filesProperties.forEach(prop => t.true(prop in file,
+        `[${prop}] should be a member of response.files[${i}]`));
+      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
