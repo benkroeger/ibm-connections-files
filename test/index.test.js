@@ -42,8 +42,6 @@ test.beforeEach((t) => {
   const filesProperties = [...baseProperties, 'versionLabel', 'totalMediaSize', 'libraryId', 'libraryType',
     'versionUuid', 'objectTypeName', 'propagation', 'malwareScanState', 'restrictedVisibility', 'encrypt'];
   const communityFilesProperties = [...filesProperties, 'added', 'contentUpdated', 'sharePermission'];
-  const foldersListProperties = [...baseProperties, 'uuid', 'visibility', 'type',
-    'isSyncable', 'allowSetFavorite', 'allowFollowing'];
 
   const validateObjects = (file, extraProps) => {
     ['created', 'published', 'updated', 'modified', ...extraProps].forEach(elem => t.true(_.isFinite(file[elem]),
@@ -58,7 +56,6 @@ test.beforeEach((t) => {
     thirdLvlProperties,
     filesProperties,
     communityFilesProperties,
-    foldersListProperties,
     validateObjects,
   });
 });
@@ -174,3 +171,51 @@ test.cb('validate retrieving all files from folder feed', (t) => {
 
 /* Error / Wrong input scenarios validations */
 
+
+test.cb('error validation for retrieving community files with wrong communityId', (t) => {
+  const { service } = t.context;
+
+  const query = {
+    communityId: 'mocked id',
+  };
+
+  service.communityFiles(query, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, `<?xml version=\"1.0\" encoding=\"UTF-8\"?><td:error xmlns:td=\"urn:ibm.com/td\"><td:errorCode>ItemNotFound</td:errorCode><td:errorMessage>EJPVJ9275E: Unable to add a group with the directory ID ${query.communityId}.</td:errorMessage></td:error>`); // eslint-disable-line max-len
+    t.end();
+  });
+});
+
+test.cb('error validation for retrieving community files with no communityId', (t) => {
+  const { service } = t.context;
+
+  service.communityFiles({}, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, '{{query.communityId}} must be defined in [communityFiles] request');
+    t.end();
+  });
+});
+
+test.cb('error validation for retrieving files from the folder with wrong communityId', (t) => {
+  const { service } = t.context;
+
+  const query = {
+    collectionId: 'mocked id',
+  };
+
+  service.filesFromFolder(query, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, `<?xml version="1.0" encoding="UTF-8"?><td:error xmlns:td="urn:ibm.com/td"><td:errorCode>ItemNotFound</td:errorCode><td:errorMessage>Collection not found with id ${query.collectionId}</td:errorMessage></td:error>`); // eslint-disable-line max-len
+    t.end();
+  });
+});
+
+test.cb('error validation for retrieving files from the folder with no communityId', (t) => {
+  const { service } = t.context;
+
+  service.filesFromFolder({}, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, '{{query.collectionId}} must be defined in [filesFromFolder] request');
+    t.end();
+  });
+});
