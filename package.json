@@ -1,20 +1,20 @@
 {
-  "name": "ibm-connections-files-service",
+  "name": "ibm-connections-files",
   "version": "0.0.1",
   "description": "An implementation for the IBM Connections Files API",
-  "license": "none",
+  "license": "MIT",
   "main": "lib/index.js",
-  "author": {
-    "name": "Andreja Jevtic",
-    "email": "andrajevtic@gmail.com"
-  },
+  "author": "Andreja Jevtic <andrajevtic@gmail.com>",
   "keywords": [
     "ibm-connections-files-service",
     "ibm",
     "files",
     "service"
   ],
-  "repository": "bitbucket:gisag/ibm-connections-files-service",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benkroeger/ibm-connections-files.git"
+  },
   "scripts": {
     "coverage": "nyc npm run test && nyc report --reporter=html",
     "lint": "eslint .",
@@ -40,5 +40,9 @@
   },
   "files": [
     "lib/"
-  ]
+  ],
+  "homepage": "https://github.com/benkroeger/ibm-connections-files#readme",
+  "directories": {
+    "test": "test"
+  }
 }
