@@ -1,48 +1,47 @@
 {
-  "name": "ibm-connections-files-service",
+  "name": "ibm-connections-files",
   "version": "0.0.1",
   "description": "An implementation for the IBM Connections Files API",
-  "license": "none",
+  "license": "MIT",
   "main": "lib/index.js",
-  "author": {
-    "name": "Andreja Jevtic",
-    "email": "andrajevtic@gmail.com"
-  },
+  "author": "Andreja Jevtic <andrajevtic@gmail.com>",
   "keywords": [
     "ibm-connections-files-service",
     "ibm",
     "files",
     "service"
   ],
-  "repository": "bitbucket:gisag/ibm-connections-files-service",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benkroeger/ibm-connections-files.git"
+  },
   "scripts": {
     "coverage": "nyc npm run test && nyc report --reporter=html",
     "lint": "eslint .",
-    "lint-fix": "eslint . --fix",
+    "lint-fix": "npm run lint --fix",
     "test": "ava --verbose"
   },
   "dependencies": {
-    "async": "2.4.0",
+    "async": "2.5.0",
     "lodash": "4.17.4",
-    "oniyi-http-client": "1.1.0",
-    "oniyi-http-plugin-credentials": "0.2.0",
-    "oniyi-http-plugin-format-url-template": "1.0.1",
-    "oniyi-logger": "1.0.0",
-    "oniyi-utils": "1.1.1",
-    "oniyi-utils-xml": "1.0.0"
+    "oniyi-http-client": "1.1.1",
+    "oniyi-http-plugin-credentials": "0.2.1",
+    "oniyi-http-plugin-format-url-template": "1.0.2",
+    "oniyi-utils-xml": "1.1.0"
   },
   "devDependencies": {
-    "ava": "0.18.1",
-    "babel-eslint": "7.1.1",
-    "dotenv": "4.0.0",
-    "eslint": "3.5.0",
-    "eslint-config-oniyi": "4.2.0",
-    "eslint-plugin-ava": "3.0.0",
-    "nock": "9.0.13",
-    "nyc": "10.1.2"
+    "ava": "0.22.0",
+    "eslint": "4.5.0",
+    "eslint-config-oniyi": "4.5.0",
+    "eslint-plugin-ava": "4.2.1",
+    "nock": "9.0.14",
+    "nyc": "11.1.0"
   },
   "files": [
-    "index.js",
-    "lib"
-  ]
+    "lib/"
+  ],
+  "homepage": "https://github.com/benkroeger/ibm-connections-files#readme",
+  "directories": {
+    "test": "test"
+  }
 }

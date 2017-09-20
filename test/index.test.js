@@ -1,33 +1,35 @@
 'use strict';
 
 // node core modules
-const fs = require('fs');
-const path = require('path');
 
 // 3rd party modules
-const test = require('ava');
-const _ = require('lodash');
+import test from 'ava';
+import _ from 'lodash';
 
 // internal modules
-const FileService = require('../lib');
-const { mockHttpRequests, cleanAll, writeNockCallsToFile, recordHttpRequests } = require('./helpers/http-mocking-utils');
+import fileService from '../lib';
+import { mock, record, persist } from './fixtures/http-mocking';
 
-// configure dotenv
-require('dotenv').config();
+const { unmocked, username, password } = process.env;
 
-const { USER_CREDENTIALS: userCredentials } = process.env;
-const nockCallsExist = fs.existsSync(path.join(__dirname, 'helpers/nock-calls.js'));
+test.before(() => (unmocked ? record() : mock()));
+test.after(() => unmocked && persist());
 
 test.beforeEach((t) => {
-  const auth = `Basic ${new Buffer(userCredentials).toString('base64')}`;
-  const defaults = {
-    headers: {
-      Authorization: auth,
+  const serviceOptions = {
+    defaults: {
+      authType: 'basic',
     },
   };
-  const serviceOptions = {
-    defaults,
-  };
+  if (unmocked) {
+    Object.assign(serviceOptions.defaults, {
+      auth: {
+        user: username,
+        pass: password,
+      },
+    });
+  }
+
   const baseProperties = ['id', 'title', 'summary', 'created', 'published', 'updated',
     'modified', 'label', 'isExternal', 'orgId', 'links', 'author', 'modifier', 'ranks', 'policy'];
 
@@ -35,52 +37,43 @@ test.beforeEach((t) => {
   const thirdLvlProperties = ['name', 'userId', 'orgId', 'orgName', 'email', 'userState'];
 
   const filesProperties = [...baseProperties, 'versionLabel', 'totalMediaSize', 'libraryId', 'libraryType',
-    'versionUuid', 'objectTypeName', 'propagation', 'malwareScanState', 'restrictedVisibility', 'encrypt', 'addedBy'];
+    'versionUuid', 'objectTypeName', 'propagation', 'malwareScanState', 'restrictedVisibility', 'encrypt'];
   const communityFilesProperties = [...filesProperties, 'added', 'contentUpdated', 'sharePermission'];
-  const foldersListProperties = [...baseProperties, 'uuid', 'visibility', 'type',
-    'isSyncable', 'allowSetFavorite', 'allowFollowing'];
 
-  const source = new FileService('https://apps.na.collabserv.com/files', serviceOptions);
+  const validateObjects = (file, extraProps) => {
+    ['created', 'published', 'updated', 'modified', ...extraProps].forEach(elem => t.true(_.isFinite(file[elem]),
+      `[${elem}] should be of type Number, instead we got: [${typeof file[elem]}]`));
+  };
+
+  const service = fileService('https://apps.na.collabserv.com/files', serviceOptions);
   _.assign(t.context, {
-    source,
+    service,
     serviceOptions,
     secondLvlProperties,
     thirdLvlProperties,
     filesProperties,
     communityFilesProperties,
-    foldersListProperties,
+    validateObjects,
   });
 });
-//
-// test.before(() => {
-//   if (!nockCallsExist) {
-//     recordHttpRequests();
-//     return;
-//   }
-//   mockHttpRequests();
-// });
-//
-// test.after(() => {
-//   if (!nockCallsExist) {
-//     writeNockCallsToFile();
-//   }
-//   cleanAll();
-// });
 
 /* Successful scenarios validations */
-test.cb('validate retrieving personal files feed', (t) => {
-  const { source, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
-  const params = {
-    authType: 'basic',
-  };
 
-  source.feeds.myFiles(params, (err, response) => {
-    const { files } = response;
+test.cb('validate retrieving personal files feed', (t) => {
+  const { service, filesProperties, secondLvlProperties, thirdLvlProperties, validateObjects } = t.context;
+
+  service.myFiles({}, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 5, 'there should be exactly 5 elements in {response.files}');
     files.forEach((file, i) => {
       filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+
+      validateObjects(file, ['versionLabel', 'totalMediaSize']);
+
+      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -92,19 +85,24 @@ test.cb('validate retrieving personal files feed', (t) => {
 });
 
 test.cb('validate retrieving files from community feed', (t) => {
-  const { source, communityFilesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
-  const params = {
+  const { service, communityFilesProperties, secondLvlProperties, thirdLvlProperties, validateObjects } = t.context;
+  const query = {
     authType: 'basic',
     communityId: '5dd83cd6-d3a5-4fb3-89cd-1e2c04e52250',
   };
 
-  source.feeds.communityFiles(params, (err, response) => {
-    const { files } = response;
+  service.communityFiles(query, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
-    t.is(files.length, 117, 'there should be exactly 117 elements in {response.files}');
+    t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
     files.forEach((file, i) => {
-      communityFilesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      [...secondLvlProperties, 'addedBy'].forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+      communityFilesProperties.forEach(prop => t.true(prop in file,
+        `[${prop}] should be a member of response.files[${i}]`));
+      validateObjects(file, ['versionLabel', 'totalMediaSize']);
+
+      [...secondLvlProperties, 'addedBy'].forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier', 'addedBy'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -117,18 +115,18 @@ test.cb('validate retrieving files from community feed', (t) => {
 });
 
 test.cb('validate retrieving publicFiles feed', (t) => {
-  const { source, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
-  const params = {
-    authType: 'basic',
-  };
+  const { service, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
 
-  source.feeds.publicFiles(params, (err, response) => {
-    const { files } = response;
+  service.publicFiles({}, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 2, 'there should be exactly 2 elements in {response.files}');
     files.forEach((file, i) => {
-      filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      [...secondLvlProperties].forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+      filesProperties.forEach(prop => t.true(prop in file,
+        `[${prop}] should be a member of response.files[${i}]`));
+      [...secondLvlProperties].forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -141,19 +139,22 @@ test.cb('validate retrieving publicFiles feed', (t) => {
 });
 
 test.cb('validate retrieving all files from folder feed', (t) => {
-  const { source, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
-  const params = {
+  const { service, filesProperties, secondLvlProperties, thirdLvlProperties } = t.context;
+  const query = {
     authType: 'basic',
     collectionId: '2e53fe56-84f6-485f-8b7a-0429f852f015',
   };
 
-  source.feeds.filesFromFolder(params, (err, response) => {
-    const { files } = response;
+  service.filesFromFolder(query, {}, (err, files) => {
+    t.ifError(err);
+
     t.true(_.isArray(files), '{response.files} should be an array');
-    t.is(files.length, 117, 'there should be exactly 117 elements in {response.files}');
+    t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
     files.forEach((file, i) => {
-      filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
-      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]), `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
+      filesProperties.forEach(prop => t.true(prop in file,
+        `[${prop}] should be a member of response.files[${i}]`));
+      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(file[prop]),
+        `[${prop}] should be a plain object, instead we got: [${typeof file[prop]}]`));
       ['author', 'modifier'].forEach((obj) => {
         thirdLvlProperties.forEach(prop => t.true(prop in file[obj], `[${prop}] should be a member of file[${obj}]`));
       });
@@ -165,26 +166,53 @@ test.cb('validate retrieving all files from folder feed', (t) => {
   });
 });
 
-test.cb('validate retrieving list of folders feed', (t) => {
-  const { source, foldersListProperties, secondLvlProperties, thirdLvlProperties } = t.context;
-  const params = {
-    authType: 'basic',
+/* Error / Wrong input scenarios validations */
+
+
+test.cb('error validation for retrieving community files with wrong communityId', (t) => {
+  const { service } = t.context;
+
+  const query = {
+    communityId: 'mocked id',
   };
 
-  source.feeds.foldersList(params, (err, response) => {
-    const { folders } = response;
-    t.true(_.isArray(folders), '{response.folders} should be an array');
-    t.is(folders.length, 1, 'there should be only 1 element in {response.folders}');
-    folders.forEach((folder, i) => {
-      foldersListProperties.forEach(prop => t.true(prop in folder, `[${prop}] should be a member of response.folders[${i}]`));
-      secondLvlProperties.forEach(prop => t.true(_.isPlainObject(folder[prop]), `[${prop}] should be a plain object, instead we got: [${typeof folder[prop]}]`));
-      ['author', 'modifier'].forEach((obj) => {
-        thirdLvlProperties.forEach(prop => t.true(prop in folder[obj], `[${prop}] should be a member of folder[${obj}]`));
-      });
-    });
+  service.communityFiles(query, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, `<?xml version=\"1.0\" encoding=\"UTF-8\"?><td:error xmlns:td=\"urn:ibm.com/td\"><td:errorCode>ItemNotFound</td:errorCode><td:errorMessage>EJPVJ9275E: Unable to add a group with the directory ID ${query.communityId}.</td:errorMessage></td:error>`); // eslint-disable-line max-len
     t.end();
   });
 });
 
-/* Error / Wrong input scenarios validations */
+test.cb('error validation for retrieving community files with no communityId', (t) => {
+  const { service } = t.context;
 
+  service.communityFiles({}, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, '{{query.communityId}} must be defined in [communityFiles] request');
+    t.end();
+  });
+});
+
+test.cb('error validation for retrieving files from the folder with wrong communityId', (t) => {
+  const { service } = t.context;
+
+  const query = {
+    collectionId: 'mocked id',
+  };
+
+  service.filesFromFolder(query, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, `<?xml version="1.0" encoding="UTF-8"?><td:error xmlns:td="urn:ibm.com/td"><td:errorCode>ItemNotFound</td:errorCode><td:errorMessage>Collection not found with id ${query.collectionId}</td:errorMessage></td:error>`); // eslint-disable-line max-len
+    t.end();
+  });
+});
+
+test.cb('error validation for retrieving files from the folder with no communityId', (t) => {
+  const { service } = t.context;
+
+  service.filesFromFolder({}, {}, (error) => {
+    t.is(error.httpStatus, 404);
+    t.is(error.message, '{{query.collectionId}} must be defined in [filesFromFolder] request');
+    t.end();
+  });
+});
