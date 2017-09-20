@@ -1,10 +1,13 @@
 {
   "name": "ibm-connections-files",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "An implementation for the IBM Connections Files API",
   "license": "MIT",
   "main": "lib/index.js",
   "author": "Andreja Jevtic <andrajevtic@gmail.com>",
+  "contributors": [
+    "Benjamin Kroeger <benjamin.kroeger@gmail.com>"
+  ],
   "keywords": [
     "ibm-connections-files-service",
     "ibm",
@@ -31,11 +34,11 @@
   },
   "devDependencies": {
     "ava": "0.22.0",
-    "eslint": "4.5.0",
+    "eslint": "4.7.1",
     "eslint-config-oniyi": "4.5.0",
-    "eslint-plugin-ava": "4.2.1",
-    "nock": "9.0.14",
-    "nyc": "11.1.0"
+    "eslint-plugin-ava": "4.2.2",
+    "nock": "9.0.17",
+    "nyc": "11.2.1"
   },
   "files": [
     "lib/"
