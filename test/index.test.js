@@ -178,7 +178,7 @@ test.cb('error validation for retrieving community files with wrong communityId'
 
   service.communityFiles(query, {}, (error) => {
     t.is(error.httpStatus, 404);
-    t.is(error.message, `<?xml version=\"1.0\" encoding=\"UTF-8\"?><td:error xmlns:td=\"urn:ibm.com/td\"><td:errorCode>ItemNotFound</td:errorCode><td:errorMessage>EJPVJ9275E: Unable to add a group with the directory ID ${query.communityId}.</td:errorMessage></td:error>`); // eslint-disable-line max-len
+    t.is(error.message, `<?xml version="1.0" encoding="UTF-8"?><td:error xmlns:td="urn:ibm.com/td"><td:errorCode>ItemNotFound</td:errorCode><td:errorMessage>EJPVJ9275E: Unable to add a group with the directory ID ${query.communityId}.</td:errorMessage></td:error>`); // eslint-disable-line max-len
     t.end();
   });
 });
