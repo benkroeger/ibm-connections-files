@@ -88,11 +88,14 @@ test.cb('validate retrieving personal files feed', (t) => {
     service, filesProperties, secondLvlProperties, thirdLvlProperties, validateObjects,
   } = t.context;
 
-  service.myFiles({}, {}, (err, files) => {
+  service.myFiles({}, {}, (err, result) => {
     t.ifError(err);
 
+    const { entries: files, totalResults } = result;
+
     t.true(_.isArray(files), '{response.files} should be an array');
-    t.is(files.length, 5, 'there should be exactly 5 elements in {response.files}');
+    t.is(files.length, 7, 'there should be exactly 7 elements in {response.files}');
+    t.is(totalResults, 7);
     files.forEach((file, i) => {
       filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
 
@@ -122,11 +125,15 @@ test.cb('validate retrieving files from community feed', (t) => {
     communityId: '5dd83cd6-d3a5-4fb3-89cd-1e2c04e52250',
   };
 
-  service.communityFiles(query, {}, (err, files) => {
+  service.communityFiles(query, {}, (err, result) => {
     t.ifError(err);
+
+    const { entries: files, totalResults } = result;
 
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
+    t.is(totalResults, 118);
+
     files.forEach((file, i) => {
       communityFilesProperties.forEach(prop =>
         t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
@@ -153,11 +160,15 @@ test.cb('validate retrieving publicFiles feed', (t) => {
     service, filesProperties, secondLvlProperties, thirdLvlProperties,
   } = t.context;
 
-  service.publicFiles({}, {}, (err, files) => {
+  service.publicFiles({}, {}, (err, result) => {
     t.ifError(err);
+
+    const { entries: files, totalResults } = result;
 
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 2, 'there should be exactly 2 elements in {response.files}');
+    t.is(totalResults, 2);
+
     files.forEach((file, i) => {
       filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
       [...secondLvlProperties].forEach(prop =>
@@ -185,11 +196,15 @@ test.cb('validate retrieving all files from folder feed', (t) => {
     collectionId: '2e53fe56-84f6-485f-8b7a-0429f852f015',
   };
 
-  service.filesFromFolder(query, {}, (err, files) => {
+  service.filesFromFolder(query, {}, (err, result) => {
     t.ifError(err);
+
+    const { entries: files, totalResults } = result;
 
     t.true(_.isArray(files), '{response.files} should be an array');
     t.is(files.length, 10, 'there should be exactly 10 elements in {response.files}');
+    t.is(totalResults, 118);
+
     files.forEach((file, i) => {
       filesProperties.forEach(prop => t.true(prop in file, `[${prop}] should be a member of response.files[${i}]`));
       secondLvlProperties.forEach(prop =>
