@@ -20,25 +20,27 @@
   },
   "scripts": {
     "coverage": "nyc npm run test && nyc report --reporter=html",
-    "lint": "eslint .",
-    "lint-fix": "npm run lint --fix",
-    "test": "ava --verbose"
+    "format": "prettier-eslint --write \"lib/**/*.js\" \"test/**/*.js\"",
+    "lint": "eslint --ignore-path .gitignore .",
+    "lint-fix": "eslint --ignore-path .gitignore . --fix",
+    "test": "ava -v"
   },
   "dependencies": {
-    "async": "2.5.0",
-    "lodash": "4.17.4",
-    "oniyi-http-client": "1.2.0",
+    "async": "^2.6.0",
+    "lodash": "^4.17.5",
+    "oniyi-http-client": "^1.2.0",
     "oniyi-http-plugin-credentials": "^1.0.0",
-    "oniyi-http-plugin-format-url-template": "1.0.2",
+    "oniyi-http-plugin-format-url-template": "^1.0.2",
     "oniyi-utils-xml": "1.1.0"
   },
   "devDependencies": {
-    "ava": "0.22.0",
-    "eslint": "4.7.1",
-    "eslint-config-oniyi": "4.5.0",
-    "eslint-plugin-ava": "4.2.2",
-    "nock": "9.0.22",
-    "nyc": "11.2.1"
+    "ava": "^0.25.0",
+    "eslint": "^4.19.1",
+    "eslint-config-oniyi": "^5.1.0",
+    "eslint-plugin-ava": "^4.5.1",
+    "nock": "^9.2.3",
+    "nyc": "^11.6.0",
+    "prettier-eslint-cli": "4.7.0"
   },
   "files": [
     "lib/"
